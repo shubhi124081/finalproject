@@ -24,11 +24,26 @@ OK, here we go.
 
 ## Introduction and Goals
 
-The goal of my project is to answer the question, What is...?
+Introduction
 
-The methods I will use to do this are...
+Understanding the causes of species diversity distribution across the globe is a fundamental goal in ecology. Despite it's importance, it is unclear how environmental variables influence biogeographic variables (with the primary variables being climate and elevation) and evolutionary processes (speciation, extinction) that influence species diversity across gradients. 
 
-The data I will use are (my own data/ data publicly available at YYY/ simulations)
+Goals
+
+This project will aim to test niche conservatism in *Pinus* genus. 
+
+The goals of this project are two fold. (1) to identify climatic variables that set distribution limits for pines, (2) to explore whether these potentially limiting variables are conserved among closely related species in the phylogeny.
+
+If climatic niche is conserved in this clade, one might expect signficiant phylogenetic signal for the climatic variables that limit species' distributions (as in a model of gradual evolutionary divergence under Brownian motion). Alternatively, species might exhibit evolutionary stasis or stablizing selection for an ancestral climatic niche (i.e. little or no change over time). The latter pattern would support even more the role of climatic ncihe conservatism in generating species diversity and richness patterns. However, since evolutionary stasis diminishes the relationship between phylogenetic and ecological divergence, failing to find no phylogenetic signal may incorrectly suggest there was no phylogenetic niche conservatism. Thus an approach that distinguishes betweenmodels of evolutionary stasis, phylogenetic signal and random noise is needed. 
+
+Methods Introduction
+To test for phylogenetic niche conservatism, different models of evolution for species climatic distributions, given their phylogenetic relationships and divergence times will be compared. The log-likelihoods for 3 different models of evolution will be computed. First a white noise model of random variationin which similarity of species is independent of phylogenetic relationships, a Brownian motion (BM) model of gradual drift in species climatic distributions and finally, to test evoluationary stasis, a single-peak Ornstein-Uhlenbeck (OU) model.
+
+
+The data I will use are publicly available. To test which climate variables limit the distributions of Pines, WorldClim data with $\sim$ 1 - km$^2$ spatial resolution for temperature and precipitation will  be used. The Forest Inventory Analysis dataset holds the occurrences for more tha 30 Pine species in North America across 20 years. This presence data will be modeled as a generalized linear model (GLM) using WorldClim climate data. 
+
+The phylogenetic tree for this analysis is from Potter and Woodall (2012). The phylogenetic tree is constructed for all 311 North American tree species included in the FIA databases.
+
 
 ## Methods
 
@@ -48,3 +63,4 @@ If I did these analyses again, I would...
 
 ## References
 
+Potter K.M. and Woodall C.W., (2012) Trends over time in tree and seedling phylogenetic diversity indciate regional differences in forest biodiversity change, *Ecological applications*, 22(2), 517-531
