@@ -32,7 +32,7 @@ Goals
 
 This project will aim to test niche conservatism in *Pinus* genus. 
 
-The goals of this project are two fold. (1) to identify climatic variables that set distribution limits for pines, (2) to explore whether these potentially limiting variables are conserved among closely related species in the phylogeny.
+The goals of this project are two fold- (1) to identify climatic variables that set distribution limits for pines, (2) to explore whether these potentially limiting variables are conserved among closely related species in the phylogeny.
 
 If climatic niche is conserved in this clade, one might expect signficiant phylogenetic signal for the climatic variables that limit species' distributions (as in a model of gradual evolutionary divergence under Brownian motion). Alternatively, species might exhibit evolutionary stasis or stablizing selection for an ancestral climatic niche (i.e. little or no change over time). The latter pattern would provide more support for the role of climatic ncihe conservatism in generating species diversity and richness patterns. However, since evolutionary stasis diminishes the relationship between phylogenetic and ecological divergence, failing to find no phylogenetic signal may incorrectly suggest there was no phylogenetic niche conservatism. Thus an approach that distinguishes between models of evolutionary stasis, phylogenetic signal and random noise is needed. 
 
