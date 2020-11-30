@@ -779,7 +779,7 @@ fit.temp.ou <- lm(scale(reconst.real)~scale(reconst.sim.ou))
 ```
 
 
-Reconstruct precipitation states 
+Reconstruct precipitation states with bm and ou 
 
 ```{r}
 
@@ -808,7 +808,7 @@ meanStates2.precip <- c(meanStates2.precip, tmpValues)
 
 fit.mle.precip <- fastAnc(pine.phy2, meanStates2.precip,vars=TRUE,CI=TRUE)
 
-
+fit.precip.ou <- anc.ML(pine.phy2, meanStates2.precip, model = "OU")
 ## projection of the reconstruction onto the edges of the tree
 obj.precip<-contMap(pine.phy2,meanStates2.precip,plot=TRUE)
 
@@ -829,9 +829,19 @@ plot(scale(reconst.real.precip), scale(reconst.sim.ou.precip))
 abline(lm(scale(reconst.real.precip) ~ scale(reconst.sim.ou.precip)), col = "red", lty = 2)
 precip.fit.ou <- lm(scale(reconst.sim.ou.precip) ~ scale(reconst.real.precip))
 
+
+
 ```
 
+Estimate correlations 
 
+```{r}
+temp_c <- pic(meanStates2, pine.phy2)
+precip_c <- pic(meanStates2.precip, pine.phy2)
+cor.test(temp_c, precip_c)
+#Correlation of 0.97 hello!
+
+```
 
 
 Archived sections 
