@@ -1,0 +1,14 @@
+
+RevBayes version (1.1.0)
+Build from v1.0.11 (fedc517) on Wed Sep 23 10:24:13 EDT 2020
+
+Visit the website www.RevBayes.com for more information about RevBayes.
+
+RevBayes is free software released under the GPL license, version 3. Type 'license()' for details.
+
+To quit RevBayes type 'quit()' or 'q()'.
+
+
+> source("mcmc_RB.Rev")
+   Error:	Could not open file "mcmc_RB.Rev"
+> 

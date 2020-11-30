@@ -1,0 +1,91 @@
+#NEXUS
+[R-package APE, Sun Nov 29 14:03:25 2020]
+
+BEGIN TAXA;
+	DIMENSIONS NTAX = 38;
+	TAXLABELS
+		Pinus_discolor
+		Pinus_cembroides
+		Pinus_edulis
+		Pinus_monophylla
+		Pinus_longaeva
+		Pinus_balfouriana
+		Pinus_aristata
+		Pinus_albicaulis
+		Pinus_flexilis
+		Pinus_monticola
+		Pinus_lambertiana
+		Pinus_strobiformis
+		Pinus_strobus
+		Pinus_nigra
+		Pinus_resinosa
+		Pinus_sylvestris
+		Pinus_banksiana
+		Pinus_virginiana
+		Pinus_clausa
+		Pinus_contorta
+		Pinus_coulteri
+		Pinus_sabiniana
+		Pinus_jeffreyi
+		Pinus_engelmannii
+		Pinus_washoensis
+		Pinus_ponderosa
+		Pinus_taeda
+		Pinus_elliottii
+		Pinus_rigida
+		Pinus_pungens
+		Pinus_serotina
+		Pinus_leiophylla
+		Pinus_palustris
+		Pinus_muricata
+		Pinus_radiata
+		Pinus_attenuata
+		
+Pinus_echinata
+		Pinus_glabra
+	;
+END;
+BEGIN TREES;
+	TRANSLATE
+		1	Pinus_discolor,
+		2	Pinus_cembroides,
+		3	Pinus_edulis,
+		4	Pinus_monophylla,
+		5	Pinus_longaeva,
+		6	Pinus_balfouriana,
+		7	Pinus_aristata,
+		8	Pinus_albicaulis,
+		9	Pinus_flexilis,
+		10	Pinus_monticola,
+		11	Pinus_lambertiana,
+		12	Pinus_strobiformis,
+		13	Pinus_strobus,
+		14	Pinus_nigra,
+		15	Pinus_resinosa,
+		16	Pinus_sylvestris,
+		17	Pinus_banksiana,
+		18	Pinus_virginiana,
+		19	Pinus_clausa,
+		20	Pinus_contorta,
+		21	Pinus_coulteri,
+		22	Pinus_sabiniana,
+		23	Pinus_jeffreyi,
+		24	Pinus_engelmannii,
+		25	Pinus_washoensis,
+		26	Pinus_ponderosa,
+		27	Pinus_taeda,
+		28	Pinus_elliottii,
+		29	Pinus_rigida,
+		30	Pinus_pungens,
+		31	Pinus_serotina,
+		32	Pinus_leiophylla,
+		33	Pinus_palustris,
+		34	Pinus_muricata,
+		35	Pinus_radiata,
+		36	Pinus_attenuata,
+		37	
+Pinus_echinata,
+		38	Pinus_glabra
+	;
+	TREE * UNTITLED = [&R] (((((1:25,2:25)wp1a1:25,(3:25,4:25)wp1a2:25)wp1a:23.5,((5:30,6:30)wp1b1:30,7:60)wp1b:13.5)wp1:13.5,((8:33.333332,(9:16.666666,10:16.666666)wp2a1:16.666666)wp2a:16.666666,((11:21,12:21)wp2b1:21,13:42)wp2b:8)wp2:37)whitepines:42,(((14:4,15:4)yp1a:15,16:19)yp1:91,(((17:26.666666,(18:13.333333,19:13.333333)yp2a1a:13.333333)yp2a1:13.333333,20:40)yp2a:35,(((21:25.714285,22:25.714285)yp2b1a:25.714285,(((23:12.857142,24:12.857142)yp2b1b1:12.857142,25:25.714285)yp2b1b:12.857141,26:38.571426)yp2b1bb:12.857143)yp2b1:12.857143,((((27:13.392858,28:13.392858)yp2b2a1a:13.392858,29:26.785715,30:26.785715)yp2b2a1:13.392859,31:40.178574)yp2b2a:13.392857,(((32:16.071428,33:16.071428)yp2b2b1a:16.071428,((34:10.714286,35:10.714286)yp2b2b1b1:10.714286,36:21.428572)yp2b2b1b:10.714285)yp2b2b1:10.714287,37:42.857143,38:42.857143)yp2b2b:10.714287)yp2b2:10.714283)yp2b:10.714287)yp2:35)yellowpines:19)Pinus;
+END;

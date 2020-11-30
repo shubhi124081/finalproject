@@ -1,0 +1,97 @@
+#NEXUS
+[R-package PHYTOOLS, Sun Nov 29 11:37:30 2020]
+
+BEGIN TAXA;
+	DIMENSIONS NTAX = 38;
+	TAXLABELS
+		Pinus_echinata
+		Pinus_albicaulis
+		Pinus_aristata
+		Pinus_attenuata
+		Pinus_balfouriana
+		Pinus_banksiana
+		Pinus_cembroides
+		Pinus_clausa
+		Pinus_contorta
+		Pinus_coulteri
+		Pinus_discolor
+		Pinus_edulis
+		Pinus_elliottii
+		Pinus_engelmannii
+		Pinus_flexilis
+		Pinus_glabra
+		Pinus_jeffreyi
+		Pinus_lambertiana
+		Pinus_leiophylla
+		Pinus_longaeva
+		Pinus_monophylla
+		Pinus_monticola
+		Pinus_muricata
+		Pinus_nigra
+		Pinus_palustris
+		Pinus_ponderosa
+		Pinus_pungens
+		Pinus_radiata
+		Pinus_resinosa
+		Pinus_rigida
+		Pinus_sabiniana
+		Pinus_serotina
+		Pinus_strobiformis
+		Pinus_strobus
+		Pinus_sylvestris
+		Pinus_taeda
+		Pinus_virginiana
+		Pinus_washoensis
+	;
+END;
+BEGIN TREES;
+	TRANSLATE
+		1	Pinus_echinata,
+		2	Pinus_albicaulis,
+		3	Pinus_aristata,
+		4	Pinus_attenuata,
+		5	Pinus_balfouriana,
+		6	Pinus_banksiana,
+		7	Pinus_cembroides,
+		8	Pinus_clausa,
+		9	Pinus_contorta,
+		10	Pinus_coulteri,
+		11	Pinus_discolor,
+		12	Pinus_edulis,
+		13	Pinus_elliottii,
+		14	Pinus_engelmannii,
+		15	Pinus_flexilis,
+		16	Pinus_glabra,
+		17	Pinus_jeffreyi,
+		18	Pinus_lambertiana,
+		19	Pinus_leiophylla,
+		20	Pinus_longaeva,
+		21	Pinus_monophylla,
+		22	Pinus_monticola,
+		23	Pinus_muricata,
+		24	Pinus_nigra,
+		25	Pinus_palustris,
+		26	Pinus_ponderosa,
+		27	Pinus_pungens,
+		28	Pinus_radiata,
+		29	Pinus_resinosa,
+		30	Pinus_rigida,
+		31	Pinus_sabiniana,
+		32	Pinus_serotina,
+		33	Pinus_strobiformis,
+		34	Pinus_strobus,
+		35	Pinus_sylvestris,
+		36	Pinus_taeda,
+		37	Pinus_virginiana,
+		38	Pinus_washoensis
+	;
+	TREE * UNTITLED = [&R] (((((11:25,7:25)wp1a1:25,(12:25,21:25)wp1a2:25)wp1a:23.5,((20:30,5:30)wp1b1:30,3:60)wp1b:13.5)wp1:13.5,((2:33.333332,(15:16.666666,22:16.666666)wp2a1:16.666666)wp2a:16.666666,((18:21,33:21)wp2b1:21,34:42)wp2b:8)wp2:37)whitepines:42,(((24:4,29:4)yp1a:15,35:19)yp1:91,(((6:26.666666,(37:13.333333,8:13.333333)yp2a1a:13.333333)yp2a1:13.333333,9:40)yp2a:35,(((10:25.714285,31:25.714285)yp2b1a:25.714285,(((17:12.857142,14:12.857142)yp2b1b1:12.857142,38:25.714285)yp2b1b:12.857141,26:38.571426)yp2b1bb:12.857143)yp2b1:12.857143,((((36:13.392858,13:13.392858)yp2b2a1a:13.392858,30:26.785715,27:26.785715)yp2b2a1:13.392859,32:40.178574)yp2b2a:13.392857,(((19:16.071428,25:16.071428)yp2b2b1a:16.071428,((23:10.714286,28:10.714286)yp2b2b1b1:10.714286,4:21.428572)yp2b2b1b:10.714285)yp2b2b1:10.714287,1:42.857143,16:42.857143)yp2b2b:10.714287)yp2b2:10.714283)yp2b:10.714287)yp2:35)yellowpines:19)Pinus;
+END;
+
+
+#NEXUS
+
+Begin trees;
+tree acanthuridae = [&R] (((((Pinus_discolor:25,Pinus_cembroides:25)wp1a1:25,(12:25,21:25)wp1a2:25)wp1a:23.5,((20:30,5:30)wp1b1:30,3:60)wp1b:13.5)wp1:13.5,((2:33.333332,(15:16.666666,22:16.666666)wp2a1:16.666666)wp2a:16.666666,((18:21,33:21)wp2b1:21,34:42)wp2b:8)wp2:37)whitepines:42,(((24:4,29:4)yp1a:15,35:19)yp1:91,(((6:26.666666,(37:13.333333,8:13.333333)yp2a1a:13.333333)yp2a1:13.333333,9:40)yp2a:35,(((10:25.714285,31:25.714285)yp2b1a:25.714285,(((17:12.857142,14:12.857142)yp2b1b1:12.857142,38:25.714285)yp2b1b:12.857141,26:38.571426)yp2b1bb:12.857143)yp2b1:12.857143,((((36:13.392858,13:13.392858)yp2b2a1a:13.392858,30:26.785715,27:26.785715)yp2b2a1:13.392859,32:40.178574)yp2b2a:13.392857,(((19:16.071428,25:16.071428)yp2b2b1a:16.071428,((23:10.714286,28:10.714286)yp2b2b1b1:10.714286,4:21.428572)yp2b2b1b:10.714285)yp2b2b1:10.714287,1:42.857143,16:42.857143)yp2b2b:10.714287)yp2b2:10.714283)yp2b:10.714287)yp2:35)yellowpines:19)Pinus;
+
+End;

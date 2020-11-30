@@ -1,0 +1,585 @@
+---
+title: "PhyloBio Final Project"
+author: "Shubhi Sharma"
+date: "11/28/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+```
+
+
+#1. Set-up
+
+```{r}
+
+#general libraries needed
+library(dplyr)
+library(reshape2)
+
+# phylo libraries
+library(ape) # dependency of phylobase and phytools, used directly for computing branch lengths
+library(phytools) # for visualizing trees
+library(tidytree) # for manipulating trees w/ data
+library(ggtree) #good vis
+
+# spatial libraries
+library(raster)
+library(sp)
+library(rgeos)
+library(rgdal)
+
+# modelling library
+library(glmnet)
+
+#misc 
+library(knitr)
+library(kableExtra)
+```
+
+
+
+```{r}
+#file-paths 
+
+FORCE.REBUILD <- TRUE
+DEBUG <- FALSE
+LOAD.INV <- TRUE #dont run this as FALSE on local machine - too much mem required
+
+project.directory <- ""
+if(Sys.info()['user'] == "shubhi"){
+  project.directory <- "~/Documents/Yale/Research/ResearchRotation_Jetz"
+}else{ #check if this works on hpc
+  project.directory <- "~/research" #filepath on farnam 
+}
+
+PROJECT.DIR <- file.path(project.directory)
+DATA.DIR    <- file.path(PROJECT.DIR, 'data')
+CACHE.DIR   <- file.path(PROJECT.DIR, 'cache')
+
+OCC.PATH        <- file.path(DATA.DIR,  'dataFIA.Rdata')
+INV.PATH        <- file.path(CACHE.DIR, 'fiaInventory.csv')
+TREE.PATH       <- file.path(DATA.DIR, 'FIAphy.Rdata')
+ENV.DIR <- ""
+if(Sys.info()['user'] == "shubhi"){
+  ENV.DIR         <- "~/Documents/Yale/SDMs/env" #remember to load grace/env to local 
+}else{ #check if this works on hpc
+  ENV.DIR <- "/gpfs/loomis/pi/jetz/data/SDMs/env" #filepath on farnam 
+}
+
+ANNOTATION.PATH <- file.path(CACHE.DIR, 'annotations.csv')
+BONUS.DIR <- file.path(project.directory, "euforest_bonuslayers")
+#TODO: better name for this
+USE.TREE <- TRUE # whether the inventory should be built with a tree 
+
+# CRS of data. the inventory will be reprojected to match the env vars
+RAW.CRS <- CRS("+proj=longlat +datum=NAD83 +no_defs") # the CRS of the raw data
+ENV.CRS <- CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0") # the CRS of the env vars
+
+ENV.FILES <- c(
+  "CHELSA_bio_1.tif",  # mean annual temp
+  "CHELSA_bio_4.tif",  # temp seasonality
+  "CHELSA_bio_13.tif", # precip of wettest 1/4
+  "CHELSA_bio_15.tif", # precip seasonality
+  NULL) # NULL at end just means the last line can have a comma too (makes commenting easier). NULL isn't included
+
+BONUS.FILES <- c(
+  "phh2o_v2_strata1to4_mean_1km_epsg4326.tif", # mean soil pH over top 4 strata, compiled by Charlie
+  "ai_et0.tif", # aridity index
+  "et0_yr.tif"# potential evapotranspiration
+)
+#genFull for all genera 
+STUDY.GENUS <- "Pinus"
+
+```
+
+
+```{r}
+#functions needed 
+# function for loading the FIA data (which is organized as a plot-tree-species-year record )
+occ <- function(file.path = OCC.PATH, sub = FALSE) {
+  
+  print("1.1 loading FIA")
+  if(sub == TRUE){ #only do this if debugging 
+    load(file.path(DATA.DIR, "dataSub.Rdata"))
+    return(dataSub)
+    
+  }else{
+    
+    load(file.path) #loads as dataFIA object
+    print("1.2 loaded FIA")
+    return(dataFia)
+     
+  }
+ 
+}
+
+# convert the occurrence records to an inventory
+
+occ2inventory <- function(dataDF){
+  
+  pkgs <- installed.packages()
+  if("reshape2" %in% pkgs == FALSE){
+    install.packages("reshape2", dependencies = T)
+  }
+  # group all the observations (convert from single records to a presence/absence vector for all species)
+  
+  print("1.3 Melting...")
+  dataDF2 <- reshape2::melt(dataDF, id.vars = c("genusSp", "LAT", "LON"))
+  dataDF3 <- reshape2::dcast(dataDF2, formula = LAT + LON ~ genusSp, fun.aggregate = length)
+  
+  print("1.4 Melted")
+  return(dataDF3)  
+}
+
+
+# function for loading an inventory of FIA Forest data
+inv.forest <- function(inventory.path  = INV.PATH, # where to load/save the inventory
+                         occurrence.path = OCC.PATH, # where to find the occurrence data if we need to rebuild
+                         load.inv  = LOAD.INV, # whether to load an inventory
+                         use.tree = USE.TREE,
+                         tree.path = TREE.PATH
+                       ) {
+  # first try to load the inventory (if force.rebuild == FALSE)
+  if(load.inv && !is.null(inventory.path) && file.exists(inventory.path)) {
+    print("1.5 loading inventory ...")
+   inventory.df <- read.csv(inventory.path)
+   print("1.6 loaded")
+  } else {
+    print("oops! wrong loop")
+    occ.df <- occ(occurrence.path, sub = TRUE) #loads as dataFia/dataSub obj
+    inventory.df <- occ2inventory(occ.df)
+  }
+    
+    # if tree is NULL, get one from OTL
+    if(use.tree) {
+      #all.species <- colnames(inventory.df)[3:ncol(inventory.df)] # first two cols are coordinates
+      load(tree.path) #loaded as phy
+      #tree <- tree.otl(all.species, tree.path)
+    }
+    
+    # if a tree was found, use it to name the columns of the dataset and prune unmatched species
+    #TODO: some species could probably be matched manually
+    if(!is.null(phy)) {
+      # match the names of the species in the inventory w/ the tip labels
+      species.names <- colnames(inventory.df)[-which(colnames(inventory.df) %in% c('LON', 'LAT'))]
+      species.matches <- gsub(' ', '_', species.names)
+      print(species.matches[1:10])
+      species.matches <- sapply(species.matches, 
+                                function(species) {
+                                  phy$tip.label[which(startsWith(phy$tip.label, species))]
+                                })
+      
+      # for species that failed to match a node in the tree, leave the name in the "natural" format
+      #TODO: may be simpler to just delete these species for now, but this ends up being done later anyways
+      failed.matches <- which(lapply(species.matches, length) == 0)
+      species.matches[failed.matches] <- species.names[failed.matches]
+      
+      # finally, rename the columns
+      colnames(inventory.df)[-which(colnames(inventory.df) %in% c('LON', 'LAT'))] <- species.matches
+    }
+    
+    # finally, write the inventory
+    #if(save.if.rebuild && !is.null(inventory.path)) {
+    #write.csv(inventory.df,
+    #            inventory.path,
+    #            quote = FALSE,
+    #            row.names = FALSE)
+    #}
+
+  
+  return(inventory.df)
+}
+
+
+#subset fia to study genus 
+subset.inv <- function(dataDF = inv, study = STUDY.GENUS){
+  cn <- colnames(dataDF)[-c(1,2)]
+  sv <- sapply(cn, function(x){gregexpr("_", x)[[1]][1]})
+  genus <- sapply(cn, function(x){substr(x, 1, sv[x]-1)})
+  if(study != "genFull"){selected <- as.vector(which(genus == study))
+  dataSub <- dataDF[, selected]
+  dataSub <- cbind(dataDF[, c(1,2)], dataSub)
+  print("1.7 Subsetted")
+  return(dataSub)
+  }else{
+  print("1.7 Subsetting skipped")  
+  return(dataDF)
+  }
+  
+}
+
+
+# convert a data frame of euforest data to a spatial object (occurrence or inventory)
+df2sp <- function(df, 
+                  input.crs = RAW.CRS,
+                  output.crs = ENV.CRS){
+  # convert a data frame of euforest data to a spatial object (occurrence or inventory)
+  
+  pkgs <- installed.packages()
+  if("sp" %in% pkgs == FALSE){
+    install.packages("sp", dependencies = T)
+  }
+  
+  spdf <- SpatialPointsDataFrame(df[, c('LON', 'LAT')],
+                                 df[, -which(colnames(df)%in% c('LAT', 'LON'))],
+                                 proj4string = (input.crs))
+  
+  # reproject the data (presumably to match the env variables)
+  if(!is.null(output.crs)) {
+    spdf <- sp::spTransform(spdf, output.crs)
+  }
+  print("1.6 Df -> SP")
+  return(spdf)
+}
+
+
+
+# load environmental layers (cropped to some extent)
+env.forest <- function(extent,
+                         env.dir   = ENV.DIR,
+                         env.files = ENV.FILES, 
+                         bonus.dir = BONUS.DIR,
+                         bonus.files = BONUS.FILES,
+                         force.rebuild = FORCE.REBUILD,
+                         annotation.path = ANNOTATION.PATH) {
+  
+  if(!force.rebuild && !is.null(annotation.path) && file.exists(annotation.path)){
+    print("2.0 already annotated")
+  }else{
+    print("2.1 Annotating... ")
+  env.paths <- file.path(env.dir, env.files)
+  bonus.paths <- file.path(bonus.dir, bonus.files)
+  # have to load the layers one at a time because they may have different extent
+  env <- raster::stack()
+  for(env.path in env.paths) {
+    print(paste0("Loading ", env.path, " ..."))
+    env.layer <- raster::raster(env.path)
+    
+    # if necessary, reproject the env layer, but probably best to avoid this if possible
+    if(!raster::compareCRS(crs(env.layer), ENV.CRS)) {
+      print(paste0("  Reprojecting..."))
+      env.layer <- raster::projectRaster(env.layer, ENV.CRS)
+    }
+    
+    if(!is.null(extent)) {
+      env.crop <- raster::crop(env.layer, extent)
+    }
+    env <- raster::addLayer(env, env.crop)
+    }
+    
+    for(bonus.path in bonus.paths){
+      print(paste0("Loading ", bonus.path, "...."))
+      bonus.layer <- raster::raster(bonus.path)
+      
+      if(!raster::compareCRS(crs(bonus.layer), ENV.CRS)) {
+        print(paste0("  Reprojecting..."))
+        bonus.layer <- raster::projectRaster(bonus.layer, ENV.CRS)
+      }
+      
+      if(!is.null(extent)) {
+        bonus.crop <- raster::crop(bonus.layer, extent)
+      }
+      env <- raster::addLayer(env, bonus.crop)
+    }
+  return(env)
+  }
+}
+
+# extract/annotate inventory w/ env variables
+annotate.spdf <- function(inventory.spdf, # should be the inventory.spdf, but could be occurrences
+                          env,
+                          annotation.path = ANNOTATION.PATH, # where to load/save annotations
+                          force.rebuild   = FORCE.REBUILD # whether to force the extract (if output exists)
+) {
+  if(!force.rebuild && !is.null(annotation.path) && file.exists(annotation.path)) {
+    
+    annotations <- read.csv(annotation.path)
+    
+    annotations.spdf <- sp::SpatialPointsDataFrame(coords = dplyr::select(annotations, LON, LAT),
+                                                   data   = dplyr::select(annotations, -LON, -LAT),
+                                                   proj4string = crs(inventory.spdf))
+    
+    #TODO: check that loaded annotations align with inventory.spdf coords
+  } else {
+    # now done in a previous step when merging the other layers
+    # env.crop <- raster::crop(env, extent(inventory.spdf))
+    
+    annotations <- raster::extract(env, inventory.spdf, method = 'bilinear')
+    
+    # add the coordinates to the annotations
+    annotations.spdf <- sp::SpatialPointsDataFrame(inventory.spdf@coords,
+                                                   as.data.frame(annotations),
+                                                   proj4string = crs(inventory.spdf))
+    
+    if(!is.null(annotation.path)) {
+      write.csv(cbind(annotations.spdf@coords, annotations.spdf@data), 
+                annotation.path,
+                quote = FALSE,
+                row.names = FALSE)
+    }
+  }
+  print("2.2 Annotated!")
+  return(annotations.spdf)
+}
+
+build_pipeline <- function(occ.path = OCC.PATH,
+                       debug = DEBUG, 
+                       load.inv = LOAD.INV,
+                       inventory.path = INV.PATH,
+                       use.tree = USE.TREE,
+                       tree.path = TREE.PATH,
+                       study.genus = STUDY.GENUS, 
+                       raw.crs = RAW.CRS,
+                       env.crs = ENV.CRS,
+                       env.dir   = ENV.DIR,
+                       env.files = ENV.FILES, 
+                       bonus.dir = BONUS.DIR,
+                       bonus.files = BONUS.FILES,
+                       force.rebuild = FORCE.REBUILD,
+                       annotation.path = ANNOTATION.PATH){
+  
+
+  
+  if(!load.inv){
+    
+      dataFia <- occ(file.path = occ.path, 
+                 sub = debug)
+  
+  #subFia <- subsetOcc(dataDF = dataFia, 
+  #                    study = study.genus) 
+    
+      inv <- occ2inventory(subFia)
+      }
+  
+  
+  inv <- inv.forest(inventory.path = inventory.path,
+                    occurrence.path = occurrence.path,
+                    load.inv = load.inv,
+                    use.tree = use.tree,
+                    tree.path = tree.path)
+  
+  subsetInv <- subset.inv(dataDF = inv, study = study.genus)
+  
+  inv.sp <- df2sp(df = subsetInv,
+                  input.crs = raw.crs,
+                  output.crs = env.crs) 
+  
+  env <- env.forest(extent = inv.sp, 
+                    env.dir = env.dir, 
+                    env.files = env.files,
+                    bonus.dir = bonus.dir, 
+                    bonus.files = bonus.files, 
+                    force.rebuild = force.rebuild, 
+                    annotation.path = annotation.path)
+  
+  
+  inv.annotated <- annotate.spdf(inventory.spdf = inv.sp,
+                                 env = env, 
+                                 annotation.path = annotation.path, 
+                                 force.rebuild = force.rebuild) 
+  
+  return(list(inv.annotated, subsetInv))
+                       }
+
+```
+
+
+#1 & 2. Load FIA data & annotate
+
+
+```{r}
+data.annotated <- build_pipeline(study.genus = 'genFull')
+
+inv <- data.annotated[[2]]
+
+env <- data.annotated[[1]]
+env.complete <- cbind(env@coords, env@data)
+
+```
+
+
+#4. load phylogenetic tree
+
+```{r}
+load(TREE.PATH) #loaded as phy
+pine.sp <- colnames(inv)[-c(which(colnames(inv) %in% c("LON", "LAT")))]
+
+mrca <- phytools::fastMRCA(phy,'Pinus_nigra', 'Pinus_strobus')
+clade <- ape::extract.clade(phy, mrca)
+pine.phy <- clade
+plot(pine.phy)
+
+foo<-function(tree,...){
+  fsize<- 230*par()$pin[2]/par()$pin[1]/Ntip(tree)
+  phytools::plotTree(tree,fsize=fsize,lwd=1,..., type = "fan")
+}
+
+foo(pine.phy)
+```
+
+
+KDE estimation 
+```{r}
+library("kdensity")
+kde = kdensity(mtcars$mpg, start = "gumbel", kernel = "gaussian")
+kp <- env.complete.nona$CHELSA_bio_1
+rem <- which(!is.finite(env.complete$CHELSA_bio_1))
+env.complete.nona <- env.complete[-rem, ]
+#check 
+table(is.finite(env.complete.nona$CHELSA_bio_4))
+
+tmp <- MASS::kde2d(x = env.complete.nona$CHELSA_bio_1, y = env.complete.nona$CHELSA_bio_13)
+
+#x.prob <- sum(tmp$x * tmp$z[,])
+#return to this later 
+#annotate by mean for now
+
+#merge inv and env
+inv.env<- merge(inv, env.complete, by = c("LAT", "LON"))
+rmcols <- c("LON", "LAT", "CHELSA_bio_4", "CHELSA_bio_15", "phh2o_v2_strata1to4_mean_1km_epsg4326", "ai_et0", "et0_yr")
+inv.env <- inv.env[, -which(colnames(inv.env) %in% rmcols)]
+
+annotated <- lapply(inv.env[,1:(ncol(inv.env)-2)],  function(x){
+  sv <- which(x > 0)
+  temp <- mean(inv.env$CHELSA_bio_1[sv], na.rm = TRUE)
+  precip <- mean(inv.env$CHELSA_bio_13[sv], na.rm = TRUE)
+  vec <- c(temp, precip)
+  names(vec) <- c("temp", "precip")
+  return(vec)
+})
+# temp <- as.vector(rep(0, length(pine.sp)))
+# precip <- as.vector(rep(0, length(pine.sp)))
+# tmp <- as.list()
+# for(i in 1:length(pine.sp)){
+#   sv <- which(inv.env[,i] > 0)
+#   temp <- mean(inv.env$CHELSA_bio_1[sv], na.rm  = T)
+#   precip <- mean(inv.env$CHELSA_bio_13[sv], na.rm = T)
+#   tmp[[i]] <- list(temp, precip)
+# }
+# names(temp) <- pine.sp
+# names(precip) <- pine.sp
+# 
+# annotated <- matrix(cbind(temp, precip), ncol = 2)
+# rownames(annotated) <- pine.sp
+# colnames(annotated) <- c("temp", "precip")
+# annotated <- round(annotated, 3)
+
+write.nexus.data(annotated, file = file.path(getwd(), "annotated.nex"))
+writeNexus(pine.phy, file = file.path(getwd(), "pine.nex"))
+writeNexus(phy, file = file.path(getwd(), "fiaphy.nex"))
+```
+
+
+BM model 
+```{r}
+
+
+xy.final <- merge(inv, env.complete, by = intersect(colnames(inv), colnames(env.complete)))
+#xy.final <-xy.final[complete.cases(xy.final), ]
+
+files <- c(ENV.FILES, BONUS.FILES)
+x.varnames <- as.vector(sapply(files, function(x){name <- substr(x, 1, nchar(x)-4); return(name)}))
+
+env.matrix <- xy.final[, which(colnames(xy.final) %in% x.varnames)]
+
+# ML estimation of ancestral states 
+
+#organize data correctly 
+y.only <-  xy.final[,-c(which(colnames(xy.final)%in% c(x.varnames, "LAT", "LON")))]
+
+ann.temp <- xy.final[, "CHELSA_bio_1"]
+
+meanStates.final <- apply(y.only ,2,function(x, var = ann.temp){ xx <- cbind(x, var)
+cond <- which(xx[,1] == 1)
+if(length(cond) > 1){
+xx <- xx[which(xx[,1] == 1), ]
+mean.state <- mean(xx[, 2], na.rm = TRUE)
+}else{
+  mean.state <- 0
+}
+return(mean.state)
+})
+
+#make sure tiplabels and species match 
+
+meanStates2.final <-meanStates.final[-c(which((names(meanStates.final) %in% tree$tip.label)== FALSE))]
+
+# tmpValues <- c(65, 65, 65) #change this
+# names(tmpValues) <- tree$tip.label[c(18, 25, 37)]
+
+meanStates2.final <- c(meanStates2.final, tmpValues)
+phy2 <- drop.tip(phy, -c((which((phy$tip.label %in% names(meanStates))== FALSE)))) #don't do this
+
+fit.mle.final <- fastAnc(phy2, meanStates2.final,vars=TRUE,CI=TRUE)
+
+
+## projection of the reconstruction onto the edges of the tree
+obj.final <-contMap(tree,meanStates2.final,plot=FALSE)
+
+annotated <- as.data.frame(annotated)
+annotated <- as.data.frame(t(annotated))
+tree <- phy
+#tree <- drop.tip(phy, "Umbellularia_californica")
+#tree <- drop.tip(phy, "Vernicia_fordii")
+#annotated <- annotated[ match( rownames(annotated), tree$tip.label  ), ]
+#annotated <- annotated[complete.cases(annotated),]
+ 
+rmrows <- which(rownames(annotated) %in% tree$tip.label == FALSE)
+annotated <- annotated[-rmrows, ] 
+
+addtips <- tree$tip.label[which(tree$tip.label %in%  rownames(annotated) == FALSE)]
+
+
+tree$tip.label[which(tree$tip.label == "\nPinus_echinata")] <- "Pinus_echinata" 
+added <- as.data.frame(cbind(temp = rep(0, length(addtips)), precip = rep(0, length(addtips))))
+rownames(added) <- addtips
+
+annotated <- rbind(annotated, added)
+#tree <- drop.tip(tree, rmtips)
+
+#sanity check - should be true 
+nrow(annotated) == length(tree$tip.label)
+
+# Count the number of tips
+n_tips = length(tree$tip.label)
+
+root_node = tree$edge[(!tree$edge[,1] %in% tree$edge[,2]),1] %>% unique()
+root_age = max( dist.nodes(tree)[,root_node] ) # in millions of years (Mya)
+
+tree$edge.length = tree$edge.length / root_age
+root_age = max( dist.nodes(tree)[,root_node] )
+
+label_offset <- 0.05 * root_age
+tree_width <- 1.5 * root_age
+
+basic_ggtree <- ggtree( tree) + 
+  geom_tiplab( fontface = "italic", offset=label_offset ) +
+  xlim(0, tree_width) +
+  geom_text2(aes(label=node), col="red", nudge_x=label_offset/2 )
+
+node_values = c( annotated$temp, rep(NA, n_tips-1) )
+
+#basic_ggtree + 
+#   geom_tippoint( aes(color=annotated$temp), size=3, alpha=1 )
+
+
+temp <-  
+  ace( 
+    annotated$temp, 
+    tree, 
+    type="continuous", 
+    method="GLS", 
+    model="BM"  
+  )
+
+```
+
+
+
+
+
+
+
+
