@@ -751,10 +751,33 @@ simOU<-function(tree,alpha,sig2,theta,a0,internal){
 	else
 		return(x[1:length(tree$tip.label)]) # tip nodes only
 }
+pine.phy2 <- drop.tip(pine.phy, "\nPinus_echinata")
+pine.phy2 <- drop.tip(pine.phy2, "Pinus_pungens")
 
-x <- fastBM(tree)
+#sanity check - this should be true 
+(length(pine.phy2$tip.label) -1) == pine.phy2$Nnode
 
-phenogram(tree, meanStates2, spread.labels = TRUE)
+sv <- which(names(meanStates2) %in% c("\nPinus_echinata", "Pinus_pungens"))
+meanStates2 <- meanStates2[-sv]
+
+x <- fastBM(pine.phy2, internal =F)
+phenogram(pine.phy2, scale(meanStates2)[,1], spread.labels = TRUE)
+phenogram(pine.phy2, scale(x)[,1], spread.labels = TRUE)
+
+reconst.real <- fastAnc(pine.phy2, meanStates2)
+reconst.sim.bm <- fastAnc(pine.phy2, x)
+
+plot(scale(reconst.real), scale(reconst.sim.bm))
+abline(lm(scale(reconst.real) ~ scale(reconst.sim.bm)), col = "red", lty = 2)
+
+
+x.ou <- fastBM(pine.phy2, theta = mean(meanStates2), sig2 = sd(meanStates2))
+phenogram(pine.phy2, scale(x.ou)[,1], spread.labels = TRUE)
+
+reconst.sim.ou <- fastAnc(pine.phy2, x.ou)
+plot(scale(reconst.real), scale(reconst.sim.ou))
+abline(lm(scale(reconst.real) ~ scale(reconst.sim.ou)), col = "red", lty = 2)
+
 ```
 
 
