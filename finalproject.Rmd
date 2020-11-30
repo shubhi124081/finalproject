@@ -808,7 +808,9 @@ meanStates2.precip <- c(meanStates2.precip, tmpValues)
 
 fit.mle.precip <- fastAnc(pine.phy2, meanStates2.precip,vars=TRUE,CI=TRUE)
 
-fit.precip.ou <- anc.ML(pine.phy2, meanStates2.precip, model = "OU")
+fit.precip.ou <- anc.ML(pine.phy2, meanStates2.precip, model = "OU", theta = mean(meanStates2.precip), sig2 = sd(meanStates2.precip), alpha = 1)
+fit.precip.bm <- anc.ML(pine.phy2, meanStates2.precip, model = "BM", theta = 0, alpha = 0) #this isn't right
+
 ## projection of the reconstruction onto the edges of the tree
 obj.precip<-contMap(pine.phy2,meanStates2.precip,plot=TRUE)
 
@@ -839,8 +841,18 @@ Estimate correlations
 temp_c <- pic(meanStates2, pine.phy2)
 precip_c <- pic(meanStates2.precip, pine.phy2)
 cor.test(temp_c, precip_c)
-#Correlation of 0.97 hello!
+#Correlation of 0.97 hello! pave the way for mvn bm 
 
+```
+
+
+Some tests for phylogenetic signal 
+```{r}
+K.precip <- phylosig(pine.phy2, meanStates2.precip, test = T)
+lambda.precip <- phylosig(pine.phy2, meanStates2.precip, method = "lambda", test = T)
+
+K.temp <- phylosig(pine.phy2, meanStates2, test = T)
+lambda.temp <- phylosig(pine.phy2, meanStates2, method = "lambda", test = T)
 ```
 
 
