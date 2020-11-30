@@ -598,7 +598,7 @@ foo<-function(tree,...){
 #foo(pine.phy)
 ```
 
-Reconstruct internal states for pines using ML 
+Reconstruct termperature internal states for pines using REML 
 
 ```{r}
 # ML estimation of ancestral states 
@@ -641,7 +641,8 @@ knitr::kable(mleDf) %>%
    scroll_box(width = "500px", height = "200px")
 ```
 
-Reconstruct internal states using BM model 
+Reconstruct temperature internal states
+Comparisons to BM and OU model simulations 
 
 ```{r}
 
@@ -781,6 +782,10 @@ abline(lm(scale(reconst.real) ~ scale(reconst.sim.ou)), col = "red", lty = 2)
 ```
 
 
+
+
+
+Archived sections 
 ```{r}
 
 #debugging w functions from ape - remove from environment after 
