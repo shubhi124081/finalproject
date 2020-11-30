@@ -1,0 +1,79 @@
+---
+title: "Literature Review for PhyloBio"
+author: "Shubhi Sharma"
+date: "11/26/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**What is a morphological clock?**
+(from What drives results in Bayesian morphological clock analyses? https://www.biorxiv.org/content/10.1101/219048v1.full.pdf)
+
+Divergence time studies incorportate morphology and extensive fossil information to make up for the gap between molecular estimates of divergence times and the fossil record. 
+
+Discrete morphological data are analysed by calibrating substitution rates calculated under Markov substitution models and Poisson clock models to infer divergence times. 
+
+Models employed in these approches either assume a 'strict' clock where rates remain constant across all lineages or a 'relaxed' clock, where rates are allowed to vary across branches. 
+
+In current implementations, morphological clocks participate along with Bayesian tree priors to reconstruct posterior divergence times. 
+
+Tree priors most commonly used are variations of 'birth-death serial sampling' (BDSS) models. These incorporate diversification and fossil sampling processes and often accommodate sequential sampling of ancestral taxa. (?)
+
+**Using Comparative Methods to test phylogenetic niche conservatism **
+(from Phylogenetic comparative approaches for studying niche conservatism - https://onlinelibrary.wiley.com/doi/epdf/10.1111/j.1420-9101.2010.02144.x)
+
+
+Analyses of phylogenetic niche conservatism (PNC) are becoming increasingly common. However, each analysis makes subtly different assumptions about the evolutionary mechanisms that generates patterns of niche conservatism. 
+
+One of the most basic observations in evolutionary ecology is that closey related species tend to be more similar to each other than to more distantly related ones. 
+
+The microevolutionary mechansisms underlying PNC may include (i) stablizing selection (deviation from the ancestral niche reduces fitness so that selection favours individuals that live in the same habitats and have the same niches as their ancestors) (ii) pleiotropy i.e. if a gene allowing niche expansion is pleiotropically (?) linked with another that reduces fitness (iii) gene flow, i.e. gene flow from one part of a species range to another may act to cancel adaptations in niche traits, (iv) limited genetic variation i.e. if there is limited genetic variation in a trait, natural selection cannot act on it and (v) competition. 
+
+The rationale underlying phylogenetic comparative methods is that species may be similar largely because they share evolutionary history, not because they represent independent evolutionary origins of traits and adaptations. As a consequence of this, statistical methods that treat species as evolutionarily or statistically independent may be flawed and run the risk of generating invalid results. 
+
+PNC is one of the prime mechanisms generating phylogenetic nonindependence of species. 
+
+A variety of different methods for detecting PNC exist, each of which makes subtly different assumptions about the evolutionary mechanism that generates niche conservatism. We therefore need to link the different macroevolutionary models that can generate PNC with appropriate comparative methods of testing them. 
+
+Comparative tests are the most appropriate way of testing PNC at a macro-level. 
+
+A niche can be broadly defined as the set of conditions within which a species can survive.
+
+Key considerations - one of the key issues we highlight is that tests for niche conservatism are usually made on the strong assumption that the traits examined are indeed niche traits, which influence the survival of the species involved. If this assumption is not correct, then tests of niche conservatism may go astray. 
+
+As illustrated by Freckleton and Jetz (2009), potentially spurious phylogenetic dependence may arise from the spatial proximity of closely related species (e.g. because of dispersal limitation) combined with the strong autocorrelation inherent in environmental variables. Both issues may inflate the apparent strength on species distributions and may strongly limit the degree to which 'environmental traits' represent actual physiological limits or some approximation of the fundamental niche. 
+
+**A little bit about the four models** 
+
+**Simple Brownian Motion Model**
+
+This model assumes a constant rate of evolution across branches of a time-calibrated phylogeney. The only random paramter in the model is $\sigma^2$, the rate of evolution across the branches of the phylogeny. The expected amount of change over a single branch of length $t$ is 0, and the variance in changes is $t \times \sigma^2$. We place a log-uniform prior on $\sigma^2$. The probability of the continuous characters only depend on the phylogeney and the rate parameter. 
+
+**Relaxed Brownian Motion Model** 
+
+This is a random local clock model, which allows for a small number of shifts in rates across branches. After specifiying the model, the branch-specific rates of Brownian-motion evolution will be estimated using reversible-jump Markov chain Monte Carlo (rjMCMC).
+
+Under the simple brownian motion model, there was only one parameter $\sigma^2$ that determined the evolution of a continuous character. In this case, we allow the rates of evolution to vary according to branches of the phylogeney bu letting each branch have it's own rate paramter $\sigma^2_i$. However, there is usually insufficient information in a single continuous character to estimate each branch-specific rate as a free parameter (why?). In a Bayesian setting, the relaxed morphological clock prior model strikes a balance between biological realism (rates are allowed to vary) and statistical reliability. 
+
+In the model, each branch either does ordoes not have a rate shift. When there is no rate shift on a branch, the rate of the branch is inherited directly from the ancestral branch. When there is a rate shift, the ancestral rate is multiplied by a rate shift parameter drawn from a prior distribution. We specify a prior probability p, that a given branch experiences a rate shift. For a tree with n branches, the expected number of rate shifts is $E(k) = n \times p$. To control the number of rate shifts, we specify a prior on the expected number of rate shifts $E(k)$ and then calculate the prior probability for a rate shift on a particular branch, $p= E(k)/n$. 
+
+The prior distribution on the size of rate shifts (when they occur) is specified as a longnormal distribution with a mean of 1 and a s.d. such that rate shifts range over one order of magnitude. 
+
+Loop over each branch, drawing a rate-shift multiplier from a mixture distribution. The mixture distributions places a prior probability $p$ on the rate multiplier being drawn from the log normal distribuion and prior probability $1 - p$ on the rate shift being exactly equal to 1 (no rate shift). 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
