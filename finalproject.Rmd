@@ -625,20 +625,17 @@ names(tmpValues) <- pine.phy$tip.label[c(18, 25, 37)]
 
 meanStates2 <- c(meanStates2, tmpValues)
 #pine.phy2 <- drop.tip(pine.phy, -c((which((pine.phy$tip.label %in% names(meanStates))== FALSE)))) #don't do this
-
-fit.mle <- fastAnc(pine.phy, meanStates2,vars=TRUE,CI=TRUE)
+meanStates2 <- meanStates2/10
+fit.mle <- fastAnc(pine.phy2, meanStates2,vars=TRUE,CI=TRUE)
 
 
 ## projection of the reconstruction onto the edges of the tree
-obj<-contMap(pine.phy,meanStates2,plot=FALSE)
+obj<-contMap(pine.phy2,meanStates2,plot=TRUE)
 plot(obj,type="fan",legend=0.7*max(nodeHeights(pine.phy)),
     fsize=c(0.7,0.9))
 mleDf <- as.data.frame(cbind(Mean = fit.mle$ace, Var = fit.mle$var, CI = fit.mle$CI95))
 colnames(mleDf) <- c("Mean", "Var", "Lower CI", "Upper CI")
-#rownames(mleDf) <- pine.phy$tip.label
-knitr::kable(mleDf) %>%
-   kable_paper() %>%
-   scroll_box(width = "500px", height = "200px")
+
 ```
 
 Reconstruct temperature internal states
@@ -770,7 +767,7 @@ reconst.sim.bm <- fastAnc(pine.phy2, x)
 
 plot(scale(reconst.real), scale(reconst.sim.bm))
 abline(lm(scale(reconst.real) ~ scale(reconst.sim.bm)), col = "red", lty = 2)
-
+fit.temp.bm <- lm(scale(reconst.real) ~ scale(reconst.sim.bm))
 
 x.ou <- fastBM(pine.phy2, theta = mean(meanStates2), sig2 = sd(meanStates2))
 phenogram(pine.phy2, scale(x.ou)[,1], spread.labels = TRUE)
@@ -778,14 +775,68 @@ phenogram(pine.phy2, scale(x.ou)[,1], spread.labels = TRUE)
 reconst.sim.ou <- fastAnc(pine.phy2, x.ou)
 plot(scale(reconst.real), scale(reconst.sim.ou))
 abline(lm(scale(reconst.real) ~ scale(reconst.sim.ou)), col = "red", lty = 2)
+fit.temp.ou <- lm(scale(reconst.real)~scale(reconst.sim.ou))
+```
+
+
+Reconstruct precipitation states 
+
+```{r}
+
+#organize data correctly 
+y.only <-  xy[,-c(which(colnames(xy)%in% c(x.varnames, "LAT", "LON")))]
+
+ann.precip <- xy[, "CHELSA_bio_13"]
+
+meanStates.precip <- apply(y.only ,2,function(x, var = ann.temp){ xy <- cbind(x, var)
+
+xy <- xy[which(xy[,1] == 1) , ]
+mean.state <- mean(xy[, 2])
+
+return(mean.state)
+})
+
+#make sure tiplabels and species match 
+
+meanStates2.precip <-meanStates.precip[-c(which((names(meanStates.precip) %in% pine.phy2$tip.label)== FALSE))]
+
+tmpValues <- c(105, 105)
+names(tmpValues) <- pine.phy2$tip.label[c(18, 25)]
+
+meanStates2.precip <- c(meanStates2.precip, tmpValues)
+#pine.phy2 <- drop.tip(pine.phy, -c((which((pine.phy$tip.label %in% names(meanStates))== FALSE)))) #don't do this
+
+fit.mle.precip <- fastAnc(pine.phy2, meanStates2.precip,vars=TRUE,CI=TRUE)
+
+
+## projection of the reconstruction onto the edges of the tree
+obj.precip<-contMap(pine.phy2,meanStates2.precip,plot=TRUE)
+
+plot(obj,type="fan",legend=0.7*max(nodeHeights(pine.phy2)),
+    fsize=c(0.7,0.9))
+mleDf <- as.data.frame(cbind(Mean = fit.mle$ace, Var = fit.mle$var, CI = fit.mle$CI95))
+colnames(mleDf) <- c("Mean", "Var", "Lower CI", "Upper CI")
+
+
+reconst.real.precip <- fastAnc(pine.phy2, meanStates2.precip)
+plot(scale(reconst.real.precip), scale(reconst.sim.bm))
+abline(lm(scale(reconst.real.precip) ~ scale(reconst.sim.bm)), col = "red", lty = 2)
+precip.fit.bm <- lm(scale(reconst.real.precip) ~ scale(reconst.sim.bm))
+
+x.ou.precip <- fastBM(pine.phy2, theta = mean(meanStates2.precip), sig2 = sd(meanStates2.precip))
+reconst.sim.ou.precip <- fastAnc(pine.phy2, x.ou.precip)
+plot(scale(reconst.real.precip), scale(reconst.sim.ou.precip))
+abline(lm(scale(reconst.real.precip) ~ scale(reconst.sim.ou.precip)), col = "red", lty = 2)
+precip.fit.ou <- lm(scale(reconst.sim.ou.precip) ~ scale(reconst.real.precip))
 
 ```
 
 
 
 
-
 Archived sections 
+
+
 ```{r}
 
 #debugging w functions from ape - remove from environment after 
