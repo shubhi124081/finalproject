@@ -630,11 +630,15 @@ fit.mle <- fastAnc(pine.phy2, meanStates2,vars=TRUE,CI=TRUE)
 
 
 ## projection of the reconstruction onto the edges of the tree
-obj<-contMap(pine.phy2,meanStates2,plot=TRUE)
+obj<-contMap(pine.phy2,meanStates2,plot=FALSE)
+n <- length(obj$cols)
+obj$cols[1:n] <- terrain.colors(n)
 plot(obj,type="fan",legend=0.7*max(nodeHeights(pine.phy)),
     fsize=c(0.7,0.9))
 mleDf <- as.data.frame(cbind(Mean = fit.mle$ace, Var = fit.mle$var, CI = fit.mle$CI95))
 colnames(mleDf) <- c("Mean", "Var", "Lower CI", "Upper CI")
+
+
 
 ```
 
@@ -765,16 +769,18 @@ phenogram(pine.phy2, scale(x)[,1], spread.labels = TRUE)
 reconst.real <- fastAnc(pine.phy2, meanStates2)
 reconst.sim.bm <- fastAnc(pine.phy2, x)
 
-plot(scale(reconst.real), scale(reconst.sim.bm))
-abline(lm(scale(reconst.real) ~ scale(reconst.sim.bm)), col = "red", lty = 2)
+scale.reconst.real <- scale(reconst.real)
+scale.reconst.sim.bm <- scale(reconst.sim.bm)
+plot(scale.reconst.real,scale.reconst.sim.bm, pch = 21, xlab = "Observed data", ylab = "Simulated data",col = "blue", bg = "blue", cex = 1)
+abline(lm(scale(reconst.real) ~ scale(reconst.sim.bm)), col = "cyan", lty = 2)
 fit.temp.bm <- lm(scale(reconst.real) ~ scale(reconst.sim.bm))
 
 x.ou <- fastBM(pine.phy2, theta = mean(meanStates2), sig2 = sd(meanStates2))
 phenogram(pine.phy2, scale(x.ou)[,1], spread.labels = TRUE)
 
 reconst.sim.ou <- fastAnc(pine.phy2, x.ou)
-plot(scale(reconst.real), scale(reconst.sim.ou))
-abline(lm(scale(reconst.real) ~ scale(reconst.sim.ou)), col = "red", lty = 2)
+plot(scale(reconst.real), scale(reconst.sim.ou),pch = 21, xlab = "Observed data", ylab = "Simulated data",col = "red", bg = "red", cex = 1 )
+abline(lm(scale(reconst.real) ~ scale(reconst.sim.ou)), col = "orange", lty = 2)
 fit.temp.ou <- lm(scale(reconst.real)~scale(reconst.sim.ou))
 ```
 
@@ -812,8 +818,12 @@ fit.precip.ou <- anc.ML(pine.phy2, meanStates2.precip, model = "OU", theta = mea
 fit.precip.bm <- anc.ML(pine.phy2, meanStates2.precip, model = "BM", theta = 0, alpha = 0) #this isn't right
 
 ## projection of the reconstruction onto the edges of the tree
-obj.precip<-contMap(pine.phy2,meanStates2.precip,plot=TRUE)
-
+obj.precip<-contMap(pine.phy2,meanStates2.precip,plot=FALSE)
+n <- length(obj.precip$cols)
+obj.precip$cols[1:n] <- terrain.colors(n)
+plot(obj.precip)
+plot(obj,type="fan",legend=0.7*max(nodeHeights(pine.phy)),
+    fsize=c(0.7,0.9))
 plot(obj,type="fan",legend=0.7*max(nodeHeights(pine.phy2)),
     fsize=c(0.7,0.9))
 mleDf <- as.data.frame(cbind(Mean = fit.mle$ace, Var = fit.mle$var, CI = fit.mle$CI95))
@@ -821,14 +831,14 @@ colnames(mleDf) <- c("Mean", "Var", "Lower CI", "Upper CI")
 
 
 reconst.real.precip <- fastAnc(pine.phy2, meanStates2.precip)
-plot(scale(reconst.real.precip), scale(reconst.sim.bm))
-abline(lm(scale(reconst.real.precip) ~ scale(reconst.sim.bm)), col = "red", lty = 2)
+plot(scale(reconst.real.precip), scale(reconst.sim.bm),  pch = 21, xlab = "Observed data", ylab = "Simulated data",col = "blue", bg = "blue", cex = 1)
+abline(lm(scale(reconst.real.precip) ~ scale(reconst.sim.bm)), col = "cyan", lty = 2)
 precip.fit.bm <- lm(scale(reconst.real.precip) ~ scale(reconst.sim.bm))
 
 x.ou.precip <- fastBM(pine.phy2, theta = mean(meanStates2.precip), sig2 = sd(meanStates2.precip))
 reconst.sim.ou.precip <- fastAnc(pine.phy2, x.ou.precip)
-plot(scale(reconst.real.precip), scale(reconst.sim.ou.precip))
-abline(lm(scale(reconst.real.precip) ~ scale(reconst.sim.ou.precip)), col = "red", lty = 2)
+plot(scale(reconst.real.precip), scale(reconst.sim.ou.precip) ,pch = 21, xlab = "Observed data", ylab = "Simulated data",col = "red", bg = "red", cex = 1)
+abline(lm(scale(reconst.real.precip) ~ scale(reconst.sim.ou.precip)), col = "orange", lty = 2)
 precip.fit.ou <- lm(scale(reconst.sim.ou.precip) ~ scale(reconst.real.precip))
 
 
@@ -841,8 +851,10 @@ Estimate correlations
 temp_c <- pic(meanStates2, pine.phy2)
 precip_c <- pic(meanStates2.precip, pine.phy2)
 cor.test(temp_c, precip_c)
+plot(temp_c, precip_c, xlab= "PIC(temp)", ylab = "PIC(precip)", pch = 21, col = 'black', bg = 'grey')
+abline(lm(precip_c ~ temp_c), lty = 2)
 #Correlation of 0.97 hello! pave the way for mvn bm 
-
+plot(meanStates2, meanStates2.precip)
 ```
 
 
@@ -856,8 +868,60 @@ lambda.temp <- phylosig(pine.phy2, meanStates2, method = "lambda", test = T)
 ```
 
 
+
+```{r}
+phylomorphospace(pine.phy2,cbind(meanStates2.precip,meanStates2),labels = "off", node.size=c(0,0))
+points(meanStates2.precip,meanStates2,pch=21,bg="grey",cex=1.4)
+```
 Archived sections 
 
+
+```{r}
+
+# Get the root node by finding the node that is a parent (in column 1 of edge) 
+    # but not a child (in column 2 of edge)
+    root_node = pine.phy2$edge[(!pine.phy2$edge[,1] %in% pine.phy2$edge[,2]),1] %>% unique()
+
+    # Get the maximum distance from the root to another node, which will be for a tip.
+    # Since this tree happens to be ultrametric, this will be the root age
+    root_age = max( dist.nodes(pine.phy2)[,root_node] )
+    
+    # This isn't necessary, but since we don't know the units of edge length let's rescale
+    # the tree so that the age of the root is 1.
+    
+    pine.phy2$edge.length = pine.phy2$edge.length / root_age
+    
+    label_offset = 0.05 * root_age
+tree_width = 1.5 * root_age
+    # And now recalculate the root age to make sure things look good
+    root_age = max( dist.nodes(pine.phy2)[,root_node] )
+n_tips <- length(pine.phy2$tip.label)
+node_values = c( 1:length(pine.phy2$tip.lab), rep(NA, n_tips-1) )
+
+ggtree(pine.phy2, layout = "circular") +  geom_tiplab( fontface = "italic", offset=label_offset ) +
+  xlim(0, tree_width) +
+ geom_tippoint( aes(color=as.factor(node_values)), size=3, alpha=1 ) + theme(legend.position = "none")
+
+
+require(rnaturalearth)
+require(rnaturalearthdata)
+
+
+world <- ne_countries(scale = 'medium', returnclass = 'sf')
+class(world)
+
+require(ggplot2)
+inv.pines<- inv
+inv.pines$total <- rowSums(inv.pines[, 3:ncol(inv.pines)])
+rmrows <- which(inv.pines$total < 1)
+inv.pines <- inv.pines[-rmrows, ]
+
+ggplot(data =world) + 
+  geom_sf() + 
+  coord_sf(xlim = c(-140, -50), ylim = c(20, 60), expand = F) + #good extent
+  geom_point(data = inv.pines, aes(x = LON, y = LAT), col = "forestgreen", size = .5, alpha = 4/10) + theme_bw()
+
+```
 
 ```{r}
 
