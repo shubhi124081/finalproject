@@ -20,48 +20,4 @@ Some guidelines and tips:
 
 OK, here we go.
 
-# Title of my project
-
-## Introduction and Goals
-
-Introduction
-
-Understanding the causes of species diversity distribution across the globe is a fundamental goal in ecology. Despite it's importance, it is unclear how environmental variables influence biogeographic variables (with the primary variables being climate and elevation) and evolutionary processes (speciation, extinction) that influence species diversity across gradients. 
-
-Goals
-
-This project will aim to test niche conservatism in *Pinus* genus. 
-
-The goals of this project are two fold- (1) to identify climatic variables that set distribution limits for pines, (2) to explore whether these potentially limiting variables are conserved among closely related species in the phylogeny.
-
-If climatic niche is conserved in this clade, one might expect signficiant phylogenetic signal for the climatic variables that limit species' distributions (as in a model of gradual evolutionary divergence under Brownian motion). Alternatively, species might exhibit evolutionary stasis or stablizing selection for an ancestral climatic niche (i.e. little or no change over time). The latter pattern would provide more support for the role of climatic ncihe conservatism in generating species diversity and richness patterns. However, since evolutionary stasis diminishes the relationship between phylogenetic and ecological divergence, failing to find no phylogenetic signal may incorrectly suggest there was no phylogenetic niche conservatism. Thus an approach that distinguishes between models of evolutionary stasis, phylogenetic signal and random noise is needed. 
-
-Methods Introduction
-
-To test for phylogenetic niche conservatism, ancestral states of the limiting distribution variable will be predicted in the clade of interest. Niche evolution will be measured as the difference between the value of the continuous trait in the most recent common ancerstor (MCRA) node and the tip. A large difference between values would indicate the niche has evolved more than in the case of a smaller difference. 
-
-
-The data I will use are publicly available. To test which climate variables limit the distributions of Pines, WorldClim data with $\sim$ 1 - km$^2$ spatial resolution for temperature and precipitation will  be used. The Forest Inventory Analysis dataset holds the occurrences for more than 30 Pine species in North America across 20 years. This presence data will be modeled as a generalized linear model (GLM) using WorldClim climate data. 
-
-The phylogenetic tree for this analysis is from Potter and Woodall (2012). The phylogenetic tree is constructed for all 311 North American tree species sampled in the FIA database.
-
-
-## Methods
-
-The tools I used were... See analysis files at (links to analysis files).
-
-## Results
-
-The tree in Figure 1...
-
-## Discussion
-
-These results indicate...
-
-The biggest difficulty in implementing these analyses was...
-
-If I did these analyses again, I would...
-
-## References
-
-Potter K.M. and Woodall C.W., (2012) Trends over time in tree and seedling phylogenetic diversity indciate regional differences in forest biodiversity change, *Ecological applications*, 22(2), 517-531
+FINAL PROJECT REPORT is titled "FINAL_REPORT.pdf" in the repository
